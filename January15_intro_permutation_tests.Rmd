@@ -1,0 +1,87 @@
+---
+title: "Hypothesis Testing --- Intro"
+author: "Darrin Speegle"
+date: "1/17/2018"
+output: html_document
+---
+
+As mentioned in class, the treated mice had times 
+```{r}
+treated <- c(30, 25, 27, 20)
+```
+and the untreated mice hag times
+```{r}
+untreated <- c(18, 21, 22)
+```
+
+We are testing the hypothesis that the treated mice take longer to finish the maze than the untreated mice. From 3850, you could use:
+
+```{r}
+t.test(treated, untreated, alternative = "greater")
+```
+or
+```{r}
+wilcox.test(treated, untreated, alternative = "greater")
+```
+
+Here, though, we are introducing **permutation tests**. Let $H_0$ be that the drug has no effect on the times that it takes the mice to run the maze. $H_a$ is that the mean time of mice who have taken the drug is longer than that of the mice who have not taken it. 
+
+It is possible in this case to do an **exact** permutation test, where we would go through all of the permutations like we did in class. However, this can be very time consuming in general, so instead we **randomly sample** from all permutations, and estimate the probability that the mean of the trated mice in the permutation is bigger 5.166 or more bigger than the untreated mice. Here is how we can do it.
+
+```{r}
+all_times <- c(treated, untreated)
+index_treated <- sample(7,4)
+perm_treated <- all_times[index_treated]
+perm_untreated <- all_times[-1 * index_treated]
+diff_mean <- mean(perm_treated) - mean(perm_untreated)
+diff_mean >= mean(treated) - mean(untreated)
+```
+
+This simulates one random assignment of times to treated or untreated, and then determines whether the difference in means if greater than or equal to the value 5.16666 that we observed in the experiment. Now, we need to `replicate`
+
+```{r}
+strong_evidence <- replicate(1000, {
+  index_treated <- sample(7,4)
+  perm_treated <- all_times[index_treated]
+  perm_untreated <- all_times[-1 * index_treated]
+  diff_mean <- mean(perm_treated) - mean(perm_untreated)
+  diff_mean >= mean(treated) - mean(untreated)
+})
+```
+
+And, we just see the percentage of times that stronger evidence against the null hypothesis was obtained:
+```{r}
+mean(strong_evidence)
+```
+This is (approximately) the same value we computed by hand, which was
+```{r}
+3/35
+```
+
+If we want to streamline things a bit, we could do:
+```{r}
+mean(replicate(10000, {
+  index_treated <- sample(7,4)
+  perm_treated <- all_times[index_treated]
+  perm_untreated <- all_times[-1 * index_treated]
+  diff_mean <- mean(perm_treated) - mean(perm_untreated)
+  diff_mean >= mean(treated) - mean(untreated)
+}))
+```
+
+###The R package coin
+
+As you probably guessed, there is an R package that implements this more directly, without you having to write the simulation yourself. I would like for you to be able to do this **both ways**. I think it is useful for understanding what the test is doing to be able to implement this directly as above. However, in practice, you often don't want to mess with the details. 
+
+```{r}
+mouse_data <- data.frame(time = all_times, group = c("T","T","T","T","C","C","C"))
+mouse_data
+```
+
+
+```{r}
+library(coin)
+independence_test(time ~ group, data = mouse_data, alternative = "less", distribution = "exact")
+3/35
+```
+
