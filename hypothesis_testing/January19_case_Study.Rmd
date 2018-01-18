@@ -1,0 +1,102 @@
+---
+title: "Case Study"
+author: "Darrin Speegle"
+date: "1/19/2018"
+output: html_document
+---
+
+In this file, we present a case study of permutation tests for difference of two means. We consider the data set `Verizon` in the `resampledata` library. This data set consists of wait times for repair for customers belonging to two groups: ILEC and CLEC. Companies are legally required to treat the two customer groups the same, and the question is whether there is statistically significant evidence that the wait times for the two groups of customers are different. The company has a financial interest in treating the ILEC customers better, so we are only interested in determining whether the opposite is true; namely, that the wait times of CLEC customers are longer on average than those of ILEC customers.
+
+```{r}
+library(resampledata)
+```
+
+##Visualization
+We start by looking at the data set.
+
+```{r}
+suppressMessages(suppressWarnings(library(tidyverse)))
+summary(Verizon)
+```
+
+We can see that we have *way* more observatins in group ILEC than in CLEC. Let's do some visualization.
+
+```{r}
+ggplot(Verizon, aes(x = Group, y = Time)) +
+  geom_boxplot()
+```
+
+The ILEC group wait times seem to be pretty skew. 
+
+```{r}
+ggplot(Verizon, aes(x = Time)) + geom_histogram() +
+  facet_wrap(~Group, scales = "free") 
+```
+Relatedly, there are also some relatively large outlier data points in the two groups.
+
+##Set-up
+Let $\mu_1$ be the true mean wait time of the ILEC group, and we let $\mu_2$ be the true mean wait time of the CLEC group. We have
+
+$H_0: \mu_1 - \mu_2  = 0$
+
+$H_a: \mu_1 - \mu_2 < 0$.
+
+Note that we did not use the data to determine what the alternative hypothesis, but rather facts about the case.
+
+##Null Distribution
+Next, we show how to estimate the null distribution. We make the further assumption that the distributions of the populations are the same, so the wait times can be considered as arbitrarily assigned to the two groups. Our strategy is to re-assign the times to groups randomly many times, and compute the test statistic each time. We then can assume that the test statistics we computed behave like a random sample of test statistics, and we can plot the histogram. This histogram is an approximation of the histogram of test statistics under $H_0$, i.e. the null distribution.
+
+We start by doing **one** re-sample.
+```{r}
+N <- nrow(Verizon)
+num_1 <- sum(Verizon$Group == "ILEC")
+num_2 <- sum(Verizon$Group == "CLEC")
+index_2 <- sample(N,num_2)
+perm_2 <- Verizon$Time[index_2]
+perm_1 <- Verizon$Time[-1 * index_2]
+mean(perm_1) - mean(perm_2)
+```
+
+Once that is working correctly, we replicate.
+```{r}
+null_sample <- replicate(5000, {
+  index_2 <- sample(N,num_2)
+  perm_2 <- Verizon$Time[index_2]
+  perm_1 <- Verizon$Time[-1 * index_2]
+  mean(perm_1) - mean(perm_2)
+})
+```
+
+Now, we plot a histogram:
+```{r}
+hist(null_sample)
+```
+This gives us a good idea of what the null distribution looks like! It seems to be skew, with a median larger than 0. Next, we will compare the null distribution to the observed test statistic.
+
+```{r}
+mtime <- Verizon %>% group_by(Group) %>% summarize(mean_time = mean(Time)) 
+mtime$mean_time[2] - mtime$mean_time[1]
+```
+
+
+```{r}
+hist(null_sample, probability = TRUE)
+abline(v = -8.09752, col = "blue", lty = 2)
+```
+We can even estimate the p-value from this plot by adding up the values to the left of the blue line. It wouldn't be very accurate, though.
+
+##P-value
+To compute the p-value, we compute the proportion of times that our re-sample provided as or more compelling evidence than what we obtained.
+
+```{r}
+mean(null_sample <= -8.09752)
+```
+And, we get a p-value of `r round(mean(null_sample <= -8.09752), 4)`
+
+We can also use the `coin` library to do this.
+```{r}
+library(coin)
+independence_test(Time ~ Group, data = Verizon, alternative = "greater", teststat = "scalar", distribution = "approximate")
+```
+
+I recommend *against* using `coin` in this class, except as a check of your work. The reason is because `coin` does a lot more than what we are doing, and I would rather you understand the basics and code it up yourself than apply a function that you don't really understand all the details of. 
