@@ -1,0 +1,47 @@
+January 19: Terminology
+========================================================
+author: Darrin Speegle 
+date: January 19
+autosize: true
+
+Terminology related to hypothesis testing
+========================================================
+
+- The **null hypothesis** $H_0$ is that there is no real effect. This is the status quo, or the absence of data that provides convincing evidence for an effect.
+- The **alternative hypothesis** $H_a$ is that there is a real effect.
+
+Notes
+====
+- The null hypothesis is usually a statement about a population parameter $\theta$. 
+- The null hypothesis is typically that $\theta$ is a particular value, denoted $\theta_0$. 
+- A **one-sided** alternative hypothesis would be that $\theta > \theta_0$ or $\theta < \theta_0$. 
+- A **two-sided** alternative hypothesis would be of the form $\theta \not= \theta_0$.
+
+Example
+===
+In the rat example, we would let $\mu_T$ be the true mean time for a treated rat to solve the maze, and $\mu_C$ be the true mean time for an untreated rat to solve the maze. Note that these are both unknown and unknowable.
+
+- $H_0: \mu_T - \mu_C = 0$
+- $H_a: \mu_T - \mu_C > 0$
+
+Notes
+===
+- We denote our estimate of the parameter $\theta$ from the data by $\hat \theta$. 
+- You **must** choose whether your alternative hypothesis is one-sided or two-sided before you collect data. It would be inappropriate to base that decision on whether $\hat \mu_T - \hat \mu_C > 0$.
+
+Test Statistic
+===
+- A **test statistic** is a function of the data. Since the data will usually be considered random samples from a larger population, test statistics are random variables and probability statements can be made about test statistics. 
+- $\frac 1n \sum_{i=1}^n X_i$ is a test statistic of the data $X_1,\ldots,X_n$.
+- After being observed, i.e. when it is a number, we call it the *observed* test statistic, and write it with lower case letters $\frac 1n\sum_{i=1}^n x_i$.
+
+P-value
+===
+- The p-value of an experiment is the probability that one would observe evidence as compelling or more against the null hypothesis, even though the null hypothesis is true. 
+- Intuitively, this is the probability that chance alone could produce results like your experiment or even more compelling against the null hypothesis.
+- In order to reject the null hypothesis, we need this probability to be low.
+
+Null Distribution
+===
+- The **null distribution** is the distribution of the test statistic when the null hypothesis is true.
+- We often need to estimate the null distribution (either implicitly or explicitly) in order to determine the p-value.
