@@ -1,0 +1,108 @@
+---
+title: "Tests of Independence"
+author: "Darrin Speegle"
+date: "1/22/2018"
+output: html_document
+---
+
+##Permutation Test of Beerwings
+
+```{r}
+library(resampledata)
+library(dplyr)
+head(Beerwings)
+Beerwings <- select(Beerwings, Hotwings, Gender)
+head(Beerwings)
+Beerwings$Hotwings_perm <- Beerwings$Hotwings[sample(nrow(Beerwings))]
+head(Beerwings)
+```
+We can then test to see whether the females ate fewer hotwings under the random permutation. Let's start by getting the null distribution of the number of hotwings eaten by the females.
+
+```{r}
+hotwings_null <- replicate(5000, {
+  Beerwings$Hotwings_perm <- Beerwings$Hotwings[sample(nrow(Beerwings))]
+  sum(Beerwings$Hotwings_perm[Beerwings$Gender == "F"])
+})
+```
+
+```{r}
+hist(hotwings_null)
+abline(v = sum(Beerwings$Hotwings[Beerwings$Gender == "F"]), col = "blue", lty = 2)
+```
+
+This is going to be pretty strong evidence that the females ate fewer hot wings!
+
+```{r}
+mean(hotwings_null <= sum(Beerwings$Hotwings[Beerwings$Gender == "F"]) )
+```
+
+The probability of getting that few hotwings eaten by women just by change is very small, so we would reject the null hypothesis that the two groups eat the same number of hot wings.
+
+##Test of independence
+
+Example: two researchers studied whether being short in high school is associated with being bullied in high school. They found the following from a survey:
+
+```{r}
+bully_data <- matrix(c(42, 30, 50, 87), byrow = TRUE, ncol = 2)
+rownames(bully_data) <- c("Short", "Not_Short")
+colnames(bully_data) <- c("Bullied", "Not_Bullied")
+library(knitr)
+kable(bully_data)
+```
+
+We wish to test whether being bullied and being short are independent. We create a new data frame that has `sum(bully_data)` rows. This is a bit tricky to do by hand, but there is a specialized package that can help us.
+
+```{r}
+library(splitstackshape)
+bully_data_long <- melt(bully_data)
+bully_data_long <- expandRows(bully_data_long, "value")
+```
+
+Now, in order to estimate the null distribution of the test statistic, we need to permute one of the rows and compute the test statistic under that permutation. 
+
+```{r}
+bully_data_long$perm <- sample(bully_data_long$Var2)
+bully_table <- table(bully_data_long[,c(1,3)])
+```
+
+In order to compute the test statistic, we need to know the expected values of each cell.
+```{r}
+row_sums <- margin.table(bully_table, margin = 1)
+col_sums <-  margin.table(bully_table, margin = 2)
+expected_values <- row_sums %*% t(col_sums)/nrow(bully_data_long)
+```
+
+Now, we can compute the test stat as follows:
+```{r}
+sum( (expected_values - bully_table)^2/expected_values  )
+```
+
+Finally, we put all of this inside `replicate`.
+
+```{r}
+null_bully <- replicate(5000, {
+  bully_data_long$perm <- sample(bully_data_long$Var2)
+  bully_table <- table(bully_data_long[,c(1,3)])
+  row_sums <- margin.table(bully_table, margin = 1)
+  col_sums <-  margin.table(bully_table, margin = 2)
+  expected_values <- row_sums %*% t(col_sums)/nrow(bully_data_long)
+  sum( (expected_values - bully_table)^2/expected_values  )
+})
+```
+
+```{r}
+hist(null_bully)
+```
+
+Finally, we compare this to our test statistic from the data:
+```{r}
+sum((bully_data - expected_values)^2/expected_values)
+mean(sum((bully_data - expected_values)^2/expected_values) <= null_bully)
+```
+
+
+```{r}
+hist(null_bully)
+abline(v =sum((bully_data - expected_values)^2/expected_values)  , col = "blue", lty = 2)
+```
+
