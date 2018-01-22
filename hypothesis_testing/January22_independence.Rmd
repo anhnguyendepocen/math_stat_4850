@@ -50,7 +50,7 @@ library(knitr)
 kable(bully_data)
 ```
 
-We wish to test whether being bullied and being short are independent. We create a new data frame that has `sum(bully_data)` rows. This is a bit tricky to do by hand, but there is a specialized package that can help us.
+We wish to test whether being bullied and being short are independent. We create a new data frame that has `r sum(bully_data)` rows. This is a bit tricky to do by hand, but there is a specialized package that can help us.
 
 ```{r}
 library(splitstackshape)
