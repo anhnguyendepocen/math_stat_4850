@@ -54,3 +54,51 @@ mean(null_dist >= test_stat)
 (sum(null_dist >= test_stat) + 1)/(5001)
 
 #' This really doesn't change much.
+#' 
+#' 
+#' Another Example, and relation to chi-squared distributions
+#' 
+
+candy_data <- matrix(c(rep(c("B", 1), 42),
+                       rep(c("B", 2), 20),
+                       rep(c("B", 3), 38),
+                       rep(c("G", 1), 33),
+                       rep(c("G", 2), 27),
+                       rep(c("G", 3), 50)
+                       ), byrow = TRUE, ncol = 2)
+candy_data
+candy_data <- data.frame(candy_data)
+
+names(candy_data) <- c("Gender", "Candy")
+table(candy_data)
+
+tabled_candy <- table(candy_data)
+
+row <- apply(tabled_candy, 1, sum)
+col <- apply(tabled_candy, 2, sum)
+
+expected_candy <- row %*% t(col)/sum(tabled_candy)
+expected_candy
+test_stat <- sum((expected_candy - tabled_candy)^2/expected_candy)
+
+null_dist <- replicate(5000, {
+  candy_data$Candy <- sample(candy_data$Candy)
+  tabled_candy <- table(candy_data)
+  sum((expected_candy - tabled_candy)^2/expected_candy)
+})
+
+hist(null_dist, probability = TRUE)
+abline(v = test_stat, col = "green", lty = 2)
+curve(expr = dchisq(x, 2), from = 0, to = 17, add = TRUE, col = "blue", lty = 3)
+
+#' Another example
+#' 
+bdays <- c(150, 138, 140, 100)
+expected_bdays <- rep(sum(bdays)/4, 4)
+t_stat <- sum((expected_bdays - bdays)^2/expected_bdays)
+null_dist <- replicate(5000, 
+  sum((rmultinom(1, sum(bdays), c(1/4,1/4,1/4,1/4)) - expected_bdays)^2/expected_bdays)
+)
+
+hist(null_dist, probability = TRUE)
+curve(dchisq(x, 3), from = 0, to = 20, add = TRUE, col = "blue", lty = 2)
