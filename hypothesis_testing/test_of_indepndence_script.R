@@ -4,6 +4,7 @@ bully_data <- matrix(c(rep(c("S", "B"), 42),
          rep(c("S", "N"), 50),
          rep(c("N", "B"), 30), 
          rep(c("N", "N"), 87)), ncol = 2, byrow = TRUE)
+bully_data
 bully_data <- as.data.frame(bully_data)
 
 str(bully_data)
@@ -17,7 +18,6 @@ tabled_data <- table(bully_data)
 rows <- apply(X = tabled_data, MARGIN = 1, sum)
 cols <- apply(tabled_data, 2, sum)
 expected_table <- rows %*% t(cols)/sum(tabled_data)  #This is an automated way to compute the expected contingency table!
-
 
 test_stat <- sum((tabled_data - expected_table)^2/expected_table)
 
@@ -91,14 +91,24 @@ hist(null_dist, probability = TRUE)
 abline(v = test_stat, col = "green", lty = 2)
 curve(expr = dchisq(x, 2), from = 0, to = 17, add = TRUE, col = "blue", lty = 3)
 
+mean(null_dist >= test_stat)
+
 #' Another example
 #' 
 bdays <- c(150, 138, 140, 100)
 expected_bdays <- rep(sum(bdays)/4, 4)
 t_stat <- sum((expected_bdays - bdays)^2/expected_bdays)
+rmultinom(1, sum(bdays), c(1/4,1/4,1/4,1/4))
+sum((rmultinom(1, sum(bdays), c(1/4,1/4,1/4,1/4)) - expected_bdays)^2/expected_bdays)
 null_dist <- replicate(5000, 
   sum((rmultinom(1, sum(bdays), c(1/4,1/4,1/4,1/4)) - expected_bdays)^2/expected_bdays)
 )
 
 hist(null_dist, probability = TRUE)
 curve(dchisq(x, 3), from = 0, to = 20, add = TRUE, col = "blue", lty = 2)
+abline(v = t_stat, col = "red", lty = 3)
+
+mean(null_dist >= t_stat)
+
+1 - pchisq(q = t_stat, df = 3)
+chisq.test(bdays)
