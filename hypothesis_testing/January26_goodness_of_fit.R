@@ -8,7 +8,7 @@ table(binned_dat) #This should be a random sample from a multinomial distributio
 expected_table <- rep(10, 5)
 test_stat <- sum((expected_table - table(binned_dat))^2/expected_table)
 
-null_dist <- replicate(5000, {
+null_dist <- replicate(10000, {
   sum((rmultinom(1,50,rep(.2,5)) - expected_table)^2/expected_table)
 })
 
@@ -34,6 +34,7 @@ nrow(Phillies2009)
 expected_hr <- hr_probs * 162
 t_stat <- sum((expected_hr - hr_data)^2/expected_table)
 
+#' DANGER!!!
 null_dist <- replicate(5000, {
   sim_dat <- rmultinom(1, 162, hr_probs)
   sum((expected_hr - sim_dat)^2/expected_hr)
