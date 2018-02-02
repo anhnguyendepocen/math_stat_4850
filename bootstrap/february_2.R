@@ -30,6 +30,8 @@ hist(apply(p_s, 1, mean))
 #'Now, we are going to do a real bootstrap sample
 
 boot_sample <- sample(length(wts), replace = TRUE)
+length(unique(boot_sample))
+max(table(boot_sample))
 wts[boot_sample]
 mean(wts[boot_sample])
 
@@ -43,3 +45,21 @@ hist(boot_sample_dist)
 
 sd(boot_sample_dist)
 mean(boot_sample_dist) #' note that this is close to the original mean of the sample
+
+
+
+my_sample <- rnorm(50, 23, 7)
+
+my_sample[sample(50, replace = TRUE)]
+
+bootstrap_samples <- replicate(10000, {
+  mean(my_sample[sample(50, replace = TRUE)])
+})
+hist(bootstrap_samples, probability = TRUE)
+curve(dnorm(x, 23, 7/sqrt(50)), add = TRUE)
+curve(dnorm(x, 22.14691, 7/sqrt(50)), col= "blue", lty = 2, add = TRUE)
+
+mean(my_sample)
+
+
+
