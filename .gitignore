@@ -9,3 +9,4 @@
 *.gz
 *.tex
 *.html
+.DS_Store
