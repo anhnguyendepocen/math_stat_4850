@@ -31,12 +31,12 @@ mean(bootstrap_sample_dist < 0)
 bb <- replicate(1000, {
   t1 <- rnorm(10, 1, 1)
   t2 <- rnorm(10, 0, 1) #true diff of means is 1
-  bootstrap_sample_dist <- replicate(1000, {
+  bootstrap_sample_dist_2 <- replicate(1000, {
     t1 <- t1[sample(10, 10, TRUE)]
     t2 <- t2[sample(10, 10, TRUE)]
     mean(t1) - mean(t2)
   })
-  1 < quantile(bootstrap_sample_dist, .975)  && 1 > quantile(bootstrap_sample_dist, .025)
+  1 < quantile(bootstrap_sample_dist_2, .975)  && 1 > quantile(bootstrap_sample_dist_2, .025)
 })
 
 #' When I ran this, I got 928 out of 1000 times the bootstrap CI did not contain the true 
@@ -46,3 +46,21 @@ prop.test(928, 1000, .95)
 
 #' Yes. With p = .001811 we can reject the hypothesis that the true percentage of times
 #' that the 95% bootstrap CI contains the true difference of means is 0.95. 
+#' 
+#' Returning to the example, we can also estimate the bias and standard error as follows:
+
+se <- sd(bootstrap_sample_dist) #Estimate for standard error of the statistic
+mean(bootstrap_sample_dist) - diff_means #Estimate for the bias of the statistic
+
+#' Example of biased estimator
+t3 <- rexp(21, 1)
+quantile(t3, .5) 
+#' biased estimator of the mean; the median of an exponential with mean 1 is ln(2)
+#' So, the bias is E[\hat \theta - \theta] = -0.30685
+
+bootstrap_sample_dist <- replicate(10000, {
+  t3_boot <- t3[sample(21, 21, TRUE)]
+  quantile(t3_boot, .5)
+})
+mean(bootstrap_sample_dist) - mean(t3) #Compare to
+log(2) - 1
