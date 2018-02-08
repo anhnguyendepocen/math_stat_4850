@@ -26,7 +26,25 @@ mean(bootstrap_sample_dist < 0)
 
 #' This brings up a question: is the bootstrap confidence interval too narrow? Specifically,
 #' if we take two samples from normal rvs and compute the bootstrap ci, will the true difference
-#' of means be in there 95% of the time?
+#' of means be in there 95% of the time? We start by testing whether t.test correctly makes
+#' confidence intervals
+
+tt <- replicate(10000, {
+  t1 <- rnorm(10, 1, 1)
+  t2 <- rnorm(10, 0, 1)
+  t_test <- t.test(t1, t2)
+  t_test$conf.int[1] < 1 && t_test$conf.int[2] > 1
+})
+mean(tt) 
+#' when I ran this, I got 9528 out of 10000. Let's do a test of proportions to see whether
+#' that is significantly different than 95%
+prop.test(9528, 10000, .95)
+#' We do not reject the null hypothesis, that the true proportion of times that the confidence interval
+#' contains 1 is 95%. The test is working as designed.
+#' 
+#' Now, let's do the same thing with the bootstrap confidence interval. It is more computing
+#' intensive, so we only do 1000 replications.
+
 
 bb <- replicate(1000, {
   t1 <- rnorm(10, 1, 1)
@@ -53,14 +71,19 @@ se <- sd(bootstrap_sample_dist) #Estimate for standard error of the statistic
 mean(bootstrap_sample_dist) - diff_means #Estimate for the bias of the statistic
 
 #' Example of biased estimator
-t3 <- rexp(21, 1)
+
+N <- 21
+t3 <- rexp(N, 1)
 quantile(t3, .5) 
 #' biased estimator of the mean; the median of an exponential with mean 1 is ln(2)
-#' So, the bias is E[\hat \theta - \theta] = -0.30685
+#' So, the bias is probably E[\hat \theta - \theta] = -0.30685. We would need to use
+#' order statistics to make this precise; this is just a ballpark estimate.
 
 bootstrap_sample_dist <- replicate(10000, {
-  t3_boot <- t3[sample(21, 21, TRUE)]
+  t3_boot <- t3[sample(N, N, TRUE)]
   quantile(t3_boot, .5)
 })
+mean(t3)
 mean(bootstrap_sample_dist) - mean(t3) #Compare to
+mean(bootstrap_sample_dist) - 1
 log(2) - 1
