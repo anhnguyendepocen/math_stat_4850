@@ -1,6 +1,9 @@
 library(resampledata)
 TV
 library(dplyr)
+library(ggplot2)
+ggplot(TV, aes(x = Cable, y = Times)) + geom_boxplot()
+
 t1 <- filter(TV, Cable == "Basic") %>% pull(Times)
 t2 <- filter(TV, Cable == "Extended") %>% pull(Times)
 diff_means <- mean(t1) - mean(t2)
@@ -38,7 +41,7 @@ tt <- replicate(10000, {
 mean(tt) 
 #' when I ran this, I got 9528 out of 10000. Let's do a test of proportions to see whether
 #' that is significantly different than 95%
-prop.test(9528, 10000, .95)
+prop.test(9522, 10000, .95)
 #' We do not reject the null hypothesis, that the true proportion of times that the confidence interval
 #' contains 1 is 95%. The test is working as designed.
 #' 
@@ -72,7 +75,7 @@ mean(bootstrap_sample_dist) - diff_means #Estimate for the bias of the statistic
 
 #' Example of biased estimator
 
-N <- 21
+N <- 10001
 t3 <- rexp(N, 1)
 quantile(t3, .5) 
 #' biased estimator of the mean; the median of an exponential with mean 1 is ln(2)
@@ -85,5 +88,5 @@ bootstrap_sample_dist <- replicate(10000, {
 })
 mean(t3)
 mean(bootstrap_sample_dist) - mean(t3) #Compare to
-mean(bootstrap_sample_dist) - 1
+#mean(bootstrap_sample_dist) - 1
 log(2) - 1
